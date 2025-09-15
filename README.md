@@ -1,5 +1,4 @@
 # Madruguinha-Back
-uinha-Back
 
 Este é o backend para o projeto Madruguinha, construído com Django e Django REST Framework.
 
