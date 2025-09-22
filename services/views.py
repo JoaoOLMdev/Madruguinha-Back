@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from rest_framework import viewsets, permissions
+from .models import ServiceType
+from .serializers import ServiceTypeSerializer
 
-# Create your views here.
+class ServiceTypeViewSet(viewsets.ModelViewSet):
+    queryset = ServiceType.objects.all()
+    serializer_class = ServiceTypeSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]

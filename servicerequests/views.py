@@ -1,3 +1,16 @@
-from django.shortcuts import render
+from rest_framework import viewsets, permissions
+from .models import ServiceType
+from .serializers import ServiceRequestDetailSerializer, ServiceRequestCreateUpdateSerializer
 
-# Create your views here.
+
+class ServiceRequestViewSet(viewsets.ModelViewSet):
+    queryset = ServiceType.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ServiceRequestCreateUpdateSerializer
+        return ServiceRequestDetailSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(requester=self.request.user)

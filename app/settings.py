@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'users',
     'providers',
     'services',
+    'servicerequests',
 ]
 
 MIDDLEWARE = [
