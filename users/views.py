@@ -16,3 +16,9 @@ class UserViewSet(viewsets.ModelViewSet):
         
         return [permission() for permission in self.permission_classes]
     
+    def update(self, request, *args, **kwargs):
+        print(self.action)
+        print(request.user)
+        print(request.auth)
+        print(request.headers)
+        return super().update(request, *args, **kwargs)
