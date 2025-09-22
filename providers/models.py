@@ -18,9 +18,9 @@ class Provider(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],
     )
 
+    cpf = models.CharField(max_length=14, unique=True)
     is_active = models.BooleanField(default=False)
-
-    servide_types = models.ManyToManyField(ServiceType, related_name='providers')
+    service_types = models.ManyToManyField(ServiceType, related_name='providers')
 
     def __str__(self):
         return f"Provider: {self.user.username} - Stars: {self.stars}"
