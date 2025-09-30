@@ -1,10 +1,10 @@
 from rest_framework import viewsets, permissions
-from .models import ServiceType
+from .models import ServiceRequest
 from .serializers import ServiceRequestDetailSerializer, ServiceRequestCreateUpdateSerializer
 
 
 class ServiceRequestViewSet(viewsets.ModelViewSet):
-    queryset = ServiceType.objects.all()
+    queryset = ServiceRequest.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
