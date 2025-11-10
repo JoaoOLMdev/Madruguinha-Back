@@ -32,6 +32,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'dev-only-insecure-key-change-me')
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
 ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h]
+if DEBUG:
+    # Be permissive in development to avoid host header issues
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -62,6 +65,10 @@ MIDDLEWARE = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [o for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000').split(',') if o]
+
+# Cookies/security (relaxed for local dev)
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
