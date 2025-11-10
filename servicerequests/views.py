@@ -27,7 +27,12 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         if user.is_authenticated and user.is_staff:
             return ServiceRequest.objects.all()
         if user.is_authenticated:
+            provider = getattr(user, 'provider_profile', None)
+            if provider:
+                return ServiceRequest.objects.filter(service_type__in=provider.service_types.all(), status=ServiceRequest.STATUS_PENDING)
+
             return ServiceRequest.objects.filter(client=user)
+
         return ServiceRequest.objects.none()
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
@@ -36,19 +41,15 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         service_request = self.get_object()
         user = request.user
 
-        # Only the client who created the request can rate
         if service_request.client != user:
             return Response({'detail': 'Only the requester can rate this service.'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Must be completed
         if service_request.status != ServiceRequest.STATUS_COMPLETED:
             return Response({'detail': 'Service request must be completed before rating.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Must have an assigned provider
         if not service_request.provider:
             return Response({'detail': 'No provider assigned to this service request.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Can't rate twice
         if hasattr(service_request, 'rating'):
             return Response({'detail': 'This service request has already been rated.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -57,3 +58,39 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
             serializer.save(service_request=service_request, provider=service_request.provider, reviewer=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def accept(self, request, pk=None):
+        """Allow a provider (authenticated user with Provider profile) to accept a pending service request.
+
+        Conditions:
+        - Request must be PENDING
+        - Request must not already have a provider
+        - Provider must offer the ServiceRequest.service_type
+        - Provider cannot be the client
+        """
+        service_request = self.get_object()
+        user = request.user
+
+        provider = getattr(user, 'provider_profile', None)
+        if not provider:
+            return Response({'detail': 'Only providers can accept service requests.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if service_request.client == user:
+            return Response({'detail': 'Client cannot accept their own request.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if service_request.status != ServiceRequest.STATUS_PENDING:
+            return Response({'detail': 'Only pending requests can be accepted.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if service_request.provider is not None:
+            return Response({'detail': 'This service request already has a provider.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if service_request.service_type not in provider.service_types.all():
+            return Response({'detail': 'Provider does not offer this type of service.'}, status=status.HTTP_403_FORBIDDEN)
+
+        service_request.provider = provider
+        service_request.status = ServiceRequest.STATUS_IN_PROGRESS
+        service_request.save()
+
+        serializer = ServiceRequestDetailSerializer(service_request, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -29,4 +29,4 @@ class ServiceRequestDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ServiceRequest
-        fields = ['id', 'title', 'description', 'address', 'requested_date', 'client', 'service_type']
+        fields = ['id', 'title', 'description', 'address', 'requested_date', 'client', 'service_type', 'provider', 'status', 'rating']
