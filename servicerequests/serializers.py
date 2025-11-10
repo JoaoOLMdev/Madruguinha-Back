@@ -4,14 +4,14 @@ from .models import ServiceRequest
 class ServiceRequestCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceRequest
-        fields = '__all__'
+        fields = ['id', 'title', 'description', 'address', 'service_type']
+        read_only_fields = ['id']
         
 
 class ServiceRequestDetailSerializer(serializers.ModelSerializer):
-    provider = serializers.StringRelatedField()
+    client = serializers.StringRelatedField()
     service_type = serializers.StringRelatedField()
-    user = serializers.StringRelatedField()
 
     class Meta:
         model = ServiceRequest
-        fields = '__all__'
+        fields = ['id', 'title', 'description', 'address', 'requested_date', 'client', 'service_type']

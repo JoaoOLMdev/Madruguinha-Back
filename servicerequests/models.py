@@ -5,7 +5,7 @@ from services.models import ServiceType
 class ServiceRequest(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    adress = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
     requested_date = models.DateTimeField(auto_now_add=True)
 
     client = models.ForeignKey(
@@ -14,7 +14,7 @@ class ServiceRequest(models.Model):
         related_name='made_requests'
     )
 
-    ServiceType = models.ForeignKey(
+    service_type = models.ForeignKey(
         ServiceType,
         on_delete=models.SET_NULL,
         null=True,

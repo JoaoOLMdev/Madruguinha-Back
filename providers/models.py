@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from services.models import ServiceType
 from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
 
 class Provider(models.Model):
     user = models.OneToOneField(
@@ -12,9 +13,9 @@ class Provider(models.Model):
     
     description = models.TextField(blank=True, null=True)
     stars = models.DecimalField(
-        max_digits=2,
+        max_digits=3,
         decimal_places=2,
-        default=0.0,
+        default=Decimal('0.00'),
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],
     )
 

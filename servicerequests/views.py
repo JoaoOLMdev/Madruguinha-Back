@@ -13,4 +13,4 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         return ServiceRequestDetailSerializer
     
     def perform_create(self, serializer):
-        serializer.save(requester=self.request.user)
+        serializer.save(client=self.request.user)
