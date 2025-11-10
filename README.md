@@ -16,7 +16,7 @@ Esta API permite o gerenciamento de usuários, prestadores, tipos de serviços e
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [link-para-seu-repositorio]
+    git clone <URL-do-repositório>
     cd madruguinha-back
     ```
 
@@ -35,11 +35,19 @@ Esta API permite o gerenciamento de usuários, prestadores, tipos de serviços e
     ```
 
 4.  **Configure as variáveis de ambiente:**
-    Crie um arquivo `.env` na raiz do projeto e adicione as configurações necessárias:
+    Crie um arquivo `.env` na raiz do projeto (ou use `.env.example` como base) e adicione as configurações necessárias:
     ```ini
-    SECRET_KEY=sua-chave-secreta-super-dificil
-    DATABASE_URL=postgres://user:password@host:port/dbname
+    # Segurança
+    SECRET_KEY=troque-esta-chave-em-producao
     DEBUG=True
+    ALLOWED_HOSTS=127.0.0.1,localhost
+    CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
+
+    # Banco de dados (PostgreSQL) - opcional; se ausente, usa SQLite local
+    DATABASE_URL=postgres://user:password@host:5432/dbname
+
+    # JWT opcional (se não definido, usa SECRET_KEY)
+    JWT_SIGNING_KEY=chave-jwt-opcional
     ```
 
 5.  **Execute as migrações do banco de dados:**
@@ -98,11 +106,11 @@ Gerenciamento de contas de usuário.
 
 | Método | URL     | Descrição                      | Permissão       | Corpo da Requisição (Exemplo)                                                                                             |
 | :----- | :------ | :----------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------ |
-| `POST` | `/`     | Registra um novo usuário.      | Público         | `{ "username": "...", "email": "...", "password": "...", "first_name": "...", "last_name": "...", "endereco": "..." }`      |
+| `POST` | `/`     | Registra um novo usuário.      | Público         | `{ "username": "...", "email": "...", "password": "...", "first_name": "...", "last_name": "...", "address": "..." }`      |
 | `GET`  | `/`     | Lista todos os usuários.       | Autenticado     | N/A                                                                                                                       |
 | `GET`  | `/{id}/` | Detalha um usuário.            | Autenticado     | N/A                                                                                                                       |
-| `PUT`  | `/{id}/` | Atualiza um usuário.           | Dono da conta\* | `{ "first_name": "...", "last_name": "...", "endereco": "..." }`                                                          |
-| `PATCH` | `/{id}/` | Atualiza parcialmente um usuário. | Dono da conta\* | `{ "endereco": "Nova Rua, 123" }`                                                                                         |
+| `PUT`  | `/{id}/` | Atualiza um usuário.           | Dono da conta\* | `{ "first_name": "...", "last_name": "...", "address": "..." }`                                                          |
+| `PATCH` | `/{id}/` | Atualiza parcialmente um usuário. | Dono da conta\* | `{ "address": "Nova Rua, 123" }`                                                                                         |
 
 \*Nota: A permissão de dono da conta precisa ser implementada com permissões customizadas.
 
@@ -134,10 +142,9 @@ Gerenciamento dos perfis de prestadores de serviço.
 
 ```json
 {
-    "usuario_id": 1,
-    "descricao": "Especialista em instalações elétricas.",
-    "disponivel": true,
-    "tipos_de_servico_ids": [1, 3]
+    "description": "Especialista em instalações elétricas.",
+    "cpf": "000.000.000-00",
+    "service_types": [1, 3]
 }
 ```
 
@@ -157,10 +164,10 @@ Gerenciamento de pedidos de serviço feitos por clientes.
 
 ```json
 {
-    "titulo": "Instalar chuveiro novo",
-    "descricao": "Preciso trocar o chuveiro antigo por um novo no banheiro principal.",
-    "endereco": "Rua das Flores, 456, Apto 101",
-    "tipo_servico_id": 1
+    "title": "Instalar chuveiro novo",
+    "description": "Preciso trocar o chuveiro antigo por um novo no banheiro principal.",
+    "address": "Rua das Flores, 456, Apto 101",
+    "service_type": 1
 }
 ```
 
@@ -172,3 +179,9 @@ Para facilitar os testes, a API possui uma interface web navegável. Para acess�
 -   **Login/Logout (para a interface web):** `http://127.0.0.1:8000/api-auth/login/`
 
 Use as credenciais do superusuário ou de qualquer outro usuário criado para fazer login e interagir diretamente com os endpoints.
+
+## Notas e Limitações Atuais
+
+-   Permissões de “dono da conta” e de edição de recursos ainda precisam ser implementadas.
+-   Endpoints de prestadores exigem autenticação para criar/editar e permitem leitura pública.
+-   Em desenvolvimento, se `DATABASE_URL` não for definido, a aplicação usa SQLite local automaticamente.
