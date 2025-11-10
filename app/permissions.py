@@ -38,3 +38,40 @@ class IsOwnerOrReadOnly(BasePermission):
 
         return False
 
+
+class IsOwnerOnly(BasePermission):
+    """Only allow the resource owner (or staff) to access the object for any method.
+
+    Unlike IsOwnerOrReadOnly, this does not allow SAFE_METHODS for non-owners.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        user = getattr(request, "user", None)
+        if user is None or not user.is_authenticated:
+            return False
+
+        # Allow staff (admin) users
+        if getattr(user, "is_staff", False):
+            return True
+
+        owner_candidates = [
+            getattr(obj, "user", None),
+            getattr(obj, "client", None),
+            getattr(obj, "owner", None),
+        ]
+
+        if any(candidate == user for candidate in owner_candidates if candidate is not None):
+            return True
+
+        # Special case: User object itself
+        try:
+            from django.contrib.auth import get_user_model
+
+            User = get_user_model()
+            if isinstance(obj, User):
+                return obj.pk == user.pk
+        except Exception:
+            pass
+
+        return False
+
