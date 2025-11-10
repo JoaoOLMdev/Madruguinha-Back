@@ -9,16 +9,11 @@ class ProviderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get_permissions(self):
-        # Only admins can create providers
         if self.action == 'create':
             permission_classes = [permissions.IsAdminUser]
-        # Allow safe methods (GET, HEAD, OPTIONS) for everyone (public read)
         elif self.request.method in permissions.SAFE_METHODS:
             permission_classes = [permissions.AllowAny]
         else:
-            # For other (write) actions require that the user is authenticated and
-            # also the owner of the provider (or staff). This enforces that
-            # only the provider user can modify their provider resource.
             from app.permissions import IsOwnerOnly
 
             permission_classes = [permissions.IsAuthenticated, IsOwnerOnly]
