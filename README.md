@@ -5,11 +5,6 @@ API RESTful desenvolvida para o backend do projeto Madruguinha Services, uma pla
 Esta API permite o gerenciamento de usuários, prestadores, tipos de serviços e solicitações de serviço.
 
 ## Tecnologias Utilizadas
-
--   **Linguagem:** Python 3.12
--   **Framework:** Django 5.2
--   **API:** Django REST Framework (DRF)
--   **Autenticação:** Simple JWT (JSON Web Tokens)
 -   **Banco de Dados:** PostgreSQL (via Neon DB)
 
 ## Configuração do Ambiente de Desenvolvimento
@@ -49,7 +44,7 @@ Esta API permite o gerenciamento de usuários, prestadores, tipos de serviços e
 
     4) Prestadores (`/api/providers/`)
     - `GET /api/providers/` — lista pública de providers (AllowAny). Filtre por `is_active` no front-end se desejar apenas ativos.
-    - `GET /api/providers/{id}/` — detalhes públicos do provider (inclui `service_types` nested).
+    `POST /api/providers/` — criar provider: se o requisitante for administrador cria o `Provider` imediatamente; se for um usuário comum, cria uma `ProviderApplication` (solicitação) com status `PENDING` que deve ser aprovada por um administrador. Admins podem revisar via `/api/provider-applications/` e usar `/api/provider-applications/{id}/approve/` ou `/reject/`.
     - `POST /api/providers/` — criar provider: atualmente restrito a administradores.
     - `PUT` / `PATCH` / `DELETE` em `/api/providers/{id}/` — permitido apenas ao dono do provider (`IsOwnerOnly`) ou staff.
 
@@ -171,8 +166,6 @@ Gerenciamento de pedidos de serviço feitos por clientes.
 ## API Navegável
 
 Para facilitar os testes, a API possui uma interface web navegável. Para acessá-la, inicie o servidor e acesse as seguintes URLs no seu navegador:
-
--   **Raiz da API:** `http://127.0.0.1:8000/api/`
 -   **Login/Logout (para a interface web):** `http://127.0.0.1:8000/api-auth/login/`
 
 Use as credenciais do superusuário ou de qualquer outro usuário criado para fazer login e interagir diretamente com os endpoints.
@@ -180,8 +173,6 @@ Use as credenciais do superusuário ou de qualquer outro usuário criado para fa
 ## Docs automáticas e exemplos
 
 O projeto expõe um schema OpenAPI e uma UI Swagger (via `drf-spectacular`):
-
-- Schema (JSON): `GET /api/schema/`
 - Swagger UI: `GET /api/docs/`
 
 Quick examples (curl)
@@ -225,8 +216,5 @@ curl -X PATCH http://127.0.0.1:8000/api/providers/<ID>/ \
 ```
 
 
-## Notas e Limitações Atuais
-
--   Permissões de “dono da conta” e de edição de recursos ainda precisam ser implementadas.
 -   Endpoints de prestadores exigem autenticação para criar/editar e permitem leitura pública.
 -   Em desenvolvimento, se `DATABASE_URL` não for definido, a aplicação usa SQLite local automaticamente.

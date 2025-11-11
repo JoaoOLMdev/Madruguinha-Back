@@ -1,7 +1,10 @@
-from rest_framework import viewsets, permissions
-from .models import Provider
-from .serializers import ProviderSerializer
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Provider, ProviderApplication
+from .serializers import ProviderSerializer, ProviderApplicationSerializer
 from app.permissions import IsOwnerOrReadOnly
+from django.utils import timezone
 
 class ProviderViewSet(viewsets.ModelViewSet):
     queryset = Provider.objects.all()
@@ -10,7 +13,10 @@ class ProviderViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            permission_classes = [permissions.IsAdminUser]
+            if getattr(self.request, 'user', None) and self.request.user.is_staff:
+                permission_classes = [permissions.IsAdminUser]
+            else:
+                permission_classes = [permissions.IsAuthenticated]
         elif self.request.method in permissions.SAFE_METHODS:
             permission_classes = [permissions.AllowAny]
         else:
@@ -30,3 +36,59 @@ class ProviderViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        """If the requester is staff, create Provider as before. Otherwise create a ProviderApplication for admin approval."""
+        user = request.user
+        if user.is_authenticated and user.is_staff:
+            return super().create(request, *args, **kwargs)
+
+        serializer = ProviderApplicationSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            app = serializer.save(applicant=user)
+            return Response(ProviderApplicationSerializer(app, context={'request': request}).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProviderApplicationViewSet(viewsets.ModelViewSet):
+    """Admin viewset to review provider applications.
+
+    Endpoints:
+    - list/retrieve: admins only
+    - POST /{id}/approve/: create Provider from application
+    - POST /{id}/reject/: mark application rejected
+    """
+    queryset = ProviderApplication.objects.all()
+    serializer_class = ProviderApplicationSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def approve(self, request, pk=None):
+        app = self.get_object()
+        if app.status != app.STATUS_PENDING:
+            return Response({'detail': 'Application already reviewed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if hasattr(app.applicant, 'provider_profile'):
+            return Response({'detail': 'Applicant already has a provider profile.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        provider = Provider.objects.create(user=app.applicant, description=app.description, cpf=app.cpf, is_active=True)
+        if app.service_types.exists():
+            provider.service_types.set(app.service_types.all())
+
+        app.status = app.STATUS_APPROVED
+        app.reviewer = request.user
+        app.reviewed_at = timezone.now()
+        app.save()
+
+        return Response(ProviderSerializer(provider, context={'request': request}).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def reject(self, request, pk=None):
+        app = self.get_object()
+        if app.status != app.STATUS_PENDING:
+            return Response({'detail': 'Application already reviewed.'}, status=status.HTTP_400_BAD_REQUEST)
+        app.status = app.STATUS_REJECTED
+        app.reviewer = request.user
+        app.reviewed_at = timezone.now()
+        app.save()
+        return Response({'detail': 'Application rejected.'}, status=status.HTTP_200_OK)
