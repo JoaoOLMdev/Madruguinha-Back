@@ -16,13 +16,38 @@ Esta API permite o gerenciamento de usuários, prestadores, tipos de serviços e
     ```
 
 2.  **Crie e ative um ambiente virtual:**
-    ```bash
+    ```powershell
     python -m venv venv
-    # Windows
+    # Windows (PowerShell)
+    .\venv\Scripts\Activate.ps1
+    # (ou, se estiver usando cmd.exe)
     .\venv\Scripts\activate
-    ### Endpoints e comportamentos (resumo atualizado)
+    ```
 
-    A URL base para todos os endpoints é `http://127.0.0.1:8000/api/`.
+3.  **Instale as dependências:**
+    ```powershell
+    pip install -r requirements.txt
+    ```
+
+4.  **Crie as migrações e aplique no banco de dados:**
+    ```powershell
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
+
+5.  **Crie um superusuário (para acesso ao Admin):**
+    ```powershell
+    python manage.py createsuperuser
+    ```
+
+6.  **Inicie o servidor de desenvolvimento:**
+    ```powershell
+    python manage.py runserver
+    ```
+
+### Endpoints e comportamentos (resumo atualizado)
+
+A URL base para todos os endpoints é `http://127.0.0.1:8000/api/`.
 
     Observação geral sobre permissões
     - `GET` em muitos recursos é público ou `AllowAny` (ver endpoints individuais).
