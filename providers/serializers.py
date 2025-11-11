@@ -12,7 +12,7 @@ class ProviderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Provider
-        fields = ['id', 'user', 'description', 'stars', 'cpf', 'service_types', 'service_types_ids']
+        fields = ['id', 'user', 'description', 'stars', 'cpf', 'is_active', 'service_types', 'service_types_ids']
 
     def create(self, validated_data):
         service_types = validated_data.pop('service_types_ids', None)

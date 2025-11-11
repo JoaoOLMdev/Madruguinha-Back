@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Provider, ProviderApplication
 from .serializers import ProviderSerializer, ProviderApplicationSerializer
-from app.permissions import IsOwnerOrReadOnly
+from app.permissions import IsOwnerOrReadOnly, IsOwnerOnly
 from django.utils import timezone
 
 class ProviderViewSet(viewsets.ModelViewSet):
@@ -48,6 +48,31 @@ class ProviderViewSet(viewsets.ModelViewSet):
             app = serializer.save(applicant=user)
             return Response(ProviderApplicationSerializer(app, context={'request': request}).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsOwnerOnly])
+    def set_active(self, request, pk=None):
+        """Set provider availability (`is_active`) — owner or admin only."""
+        provider = self.get_object()
+
+        val = request.data.get('is_active')
+        if val is None:
+            return Response({'detail': 'Provide "is_active" boolean in body.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # parse boolean-like values
+        if isinstance(val, bool):
+            is_active = val
+        else:
+            sval = str(val).strip().lower()
+            if sval in ('1', 'true', 'yes', 'on'):
+                is_active = True
+            elif sval in ('0', 'false', 'no', 'off'):
+                is_active = False
+            else:
+                return Response({'detail': 'Invalid value for is_active; use true/false.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        provider.is_active = is_active
+        provider.save()
+        return Response(ProviderSerializer(provider, context={'request': request}).data, status=status.HTTP_200_OK)
 
 
 class ProviderApplicationViewSet(viewsets.ModelViewSet):
