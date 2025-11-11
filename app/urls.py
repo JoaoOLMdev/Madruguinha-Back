@@ -25,17 +25,23 @@ from rest_framework_simplejwt.views import (
 from users.views import UserViewSet
 from services.views import ServiceTypeViewSet
 from providers.views import ProviderViewSet
+from providers.views import ProviderApplicationViewSet
 from servicerequests.views import ServiceRequestViewSet
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'service-types', ServiceTypeViewSet, basename='service-type')
 router.register(r'providers', ProviderViewSet, basename='provider')
+router.register(r'provider-applications', ProviderApplicationViewSet, basename='provider-application')
 router.register(r'service-requests', ServiceRequestViewSet, basename='service-request')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include(router.urls)),   
+    path('api-auth/', include('rest_framework.urls')),
 ]
