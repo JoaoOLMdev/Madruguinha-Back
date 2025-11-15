@@ -15,14 +15,11 @@ class UserSerializer(serializers.ModelSerializer):
 
         password = validated_data.pop('password', None)
 
-        email = validated_data.get('email')
+        email = validated_data.pop('email', None)
 
-        if email:
-            base_username = email
-        else:
-            fn = validated_data.get('first_name', '') or ''
-            ln = validated_data.get('last_name', '') or ''
-            base_username = (f"{fn}.{ln}".strip('.') ) if (fn or ln) else f"user{str(uuid4())[:8]}"
+        fn = validated_data.get('first_name', '') or ''
+        ln = validated_data.get('last_name', '') or ''
+        base_username = (f"{fn}.{ln}".strip('.') ) if (fn or ln) else f"user{str(uuid4())[:8]}"
 
         username = base_username
         i = 0
@@ -31,4 +28,5 @@ class UserSerializer(serializers.ModelSerializer):
             username = f"{base_username}{i}"
 
         user = CustomUser.objects.create_user(username=username, email=email, password=password, **validated_data)
+        
         return user
