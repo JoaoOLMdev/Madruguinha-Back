@@ -1,0 +1,34 @@
+name: CI/CD Django EC2
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: on ubuntu-latest
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          python-version: '3.12.3'
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            cd madruguinha-back
+
+            git pull origin main
+
+            source venv/bin/activate
+
+            pip install -r requirements.txt
+
+            python manage.py migrate
+
+            sudo systemctl restart gunicorn
+
+
+
+            
