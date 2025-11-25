@@ -23,23 +23,23 @@ def _make_cpf():
 
 
 SERVICE_TEMPLATES = {
-    'Plumbing': {
+    'Encanamento': {
         'provider': 'Encanador com experiência em instalação de torneiras, reparo de vazamentos e desentupimento. Atende residências e pequenos comércios, oferece orçamento no local.',
         'request': 'Necessito de serviço de encanamento para {issue} em {address}. Preciso de atendimento {when} e prefiro orçamento de custo estimado de R${price}.'
     },
-    'Electrical': {
+    'Elétrica': {
         'provider': 'Eletricista qualificado para instalações, troca de disjuntores, reparos em curto circuito e manutenção elétrica predial. Trabalha com segurança e certificação.',
         'request': 'Preciso de serviço elétrico para {issue} em {address}. Preferência por atendimento {when}; orçamento aproximado R${price}.'
     },
-    'Cleaning': {
+    'Limpeza': {
         'provider': 'Serviço de limpeza profissional para residências e escritórios: faxina, passagem de aspirador, limpeza profunda e organização. Fornece materiais se solicitado.',
         'request': 'Solicito serviço de limpeza para {issue} em {address}. Horário {when}. Estimativa de horas: {hours}h.'
     },
-    'Painting': {
+    'Pintura': {
         'provider': 'Pintor experiente em pintura interna e externa, preparação de superfícies, aplicação de massas e acabamento profissional. Fornece garantia limitada.',
         'request': 'Necessito pintura para {issue} em {address}. Área aproximada {area}m²; posso agendar para {when}.'
     },
-    'Carpentry': {
+    'Marcenaria': {
         'provider': 'Marceneiro e serviços de carpintaria: fabricação de móveis sob medida, reparos em portas e armários, montagem e acabamentos.',
         'request': 'Preciso de serviços de marcenaria para {issue} em {address}. Material disponível: {material}; prioridade: {when}.'
     }
@@ -210,7 +210,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Seeding complete.'))
 
     def _create_service_types(self):
-        names = ['Plumbing', 'Electrical', 'Cleaning', 'Painting', 'Carpentry']
+        names = ['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria']
         objs = []
         for name in names:
             obj, created = ServiceType.objects.get_or_create(name=name)
@@ -222,5 +222,5 @@ class Command(BaseCommand):
         ServiceRequest.objects.all().delete()
         ProviderApplication.objects.all().delete()
         Provider.objects.all().delete()
-        ServiceType.objects.filter(name__in=['Plumbing', 'Electrical', 'Cleaning', 'Painting', 'Carpentry']).delete()
+        ServiceType.objects.filter(name__in=['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria']).delete()
         User.objects.filter(email__endswith='@example.com').delete()
