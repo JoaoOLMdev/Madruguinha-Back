@@ -5,6 +5,8 @@ from .models import Provider, ProviderApplication
 from .serializers import ProviderSerializer, ProviderApplicationSerializer
 from app.permissions import IsOwnerOrReadOnly, IsOwnerOnly
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+from django.db import IntegrityError
 
 class ProviderViewSet(viewsets.ModelViewSet):
     queryset = Provider.objects.all()
@@ -35,7 +37,11 @@ class ProviderViewSet(viewsets.ModelViewSet):
         return Provider.objects.all()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Prevent creating a second Provider for the same user (OneToOneField)
+        user = getattr(self.request, 'user', None)
+        if user is not None and hasattr(user, 'provider_profile'):
+            raise ValidationError({'detail': 'User already has a provider profile.'})
+        serializer.save(user=user)
 
     def create(self, request, *args, **kwargs):
         """If the requester is staff, create Provider as before. Otherwise create a ProviderApplication for admin approval."""
@@ -96,7 +102,10 @@ class ProviderApplicationViewSet(viewsets.ModelViewSet):
         if hasattr(app.applicant, 'provider_profile'):
             return Response({'detail': 'Applicant already has a provider profile.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        provider = Provider.objects.create(user=app.applicant, description=app.description, cpf=app.cpf, is_active=True)
+        try:
+            provider = Provider.objects.create(user=app.applicant, description=app.description, cpf=app.cpf, is_active=True)
+        except IntegrityError:
+            return Response({'detail': 'Could not create provider — a provider for this user may already exist.'}, status=status.HTTP_400_BAD_REQUEST)
         if app.service_types.exists():
             provider.service_types.set(app.service_types.all())
 
