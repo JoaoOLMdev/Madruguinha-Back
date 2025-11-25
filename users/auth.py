@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import UserSerializer
 
 User = get_user_model()
 
@@ -41,6 +42,28 @@ class EmailTokenObtainPairSerializer(serializers.Serializer):
             'access': str(refresh.access_token),
         }
 
+class CustomTokenObtainPairSerializer(EmailTokenObtainPairSerializer):
+    """
+    Extends the default serializer to include full user data in the response body.
+    """
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        email = attrs.get('email')
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return data
+
+        user_data = UserSerializer(user).data
+        
+        data['user_id'] = user.pk
+        data['email'] = user.email
+        data['first_name'] = user.first_name
+        data['last_name'] = user.last_name
+        data['phone_number'] = user_data.get('phone_number', '')
+
+        return data
 
 class EmailTokenObtainPairView(TokenObtainPairView):
-    serializer_class = EmailTokenObtainPairSerializer
+    serializer_class = CustomTokenObtainPairSerializer

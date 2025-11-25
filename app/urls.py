@@ -22,12 +22,15 @@ from rest_framework_simplejwt.views import (
 )
 from users.auth import EmailTokenObtainPairView
 
-from users.views import UserViewSet
+
+from users.views import UserViewSet, CurrentUserView
 from services.views import ServiceTypeViewSet
 from providers.views import ProviderViewSet
 from providers.views import ProviderApplicationViewSet
 from servicerequests.views import ServiceRequestViewSet
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
@@ -44,4 +47,5 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include(router.urls)),   
     path('api-auth/', include('rest_framework.urls')),
+    path('api/current/', CurrentUserView.as_view(), name='current-user'),
 ]

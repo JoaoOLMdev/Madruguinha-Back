@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import ServiceRequest
 from .models import Rating
 from providers.serializers import ProviderSerializer
+from providers.models import Provider
 
 
 class RatingSerializer(serializers.ModelSerializer):
@@ -14,9 +15,12 @@ class RatingSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'service_request', 'provider', 'reviewer', 'created_at']
 
 class ServiceRequestCreateUpdateSerializer(serializers.ModelSerializer):
+    provider = serializers.PrimaryKeyRelatedField(
+        queryset=Provider.objects.all(), required=False, allow_null=True
+    )
     class Meta:
         model = ServiceRequest
-        fields = ['id', 'title', 'description', 'address', 'service_type']
+        fields = ['id', 'title', 'description', 'address', 'service_type', 'provider']
         read_only_fields = ['id']
         
 

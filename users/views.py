@@ -1,12 +1,25 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from .models import CustomUser
 from .serializers import UserSerializer
 from app.permissions import IsOwnerOrReadOnly
 
+
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsOwnerOrReadOnly]
+    
     
     def get_permissions(self):
         if self.action == 'create':
@@ -21,3 +34,28 @@ class UserViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             return CustomUser.objects.filter(pk=user.pk)
         return CustomUser.objects.none()
+    
+        
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def set_password(self, request, pk=None):
+        """
+        Change password for the user. Expects JSON:
+        { "current_password": "...", "new_password": "..." }
+        """
+        user = self.get_object()
+
+        if request.user.pk != user.pk and not request.user.is_staff:
+            return Response({'detail': 'Não autorizado.'}, status=status.HTTP_403_FORBIDDEN)
+
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        if not current_password or not new_password:
+            return Response({'detail': 'Campos faltando.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(current_password):
+            return Response({'detail': 'Senha atual incorreta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': 'Senha alterada com sucesso.'}, status=status.HTTP_200_OK)
