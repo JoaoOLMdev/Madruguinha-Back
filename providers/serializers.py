@@ -6,13 +6,15 @@ from services.models import ServiceType
 
 class ProviderSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
+    user_phone = serializers.CharField(source='user.phone_number', read_only=True)
+    user_address = serializers.CharField(source='user.address', read_only=True)
     service_types = ServiceTypeSerializer(many=True, read_only=True)
     service_types_ids = serializers.PrimaryKeyRelatedField(queryset=ServiceType.objects.all(), many=True, required=False)
     stars = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
 
     class Meta:
         model = Provider
-        fields = ['id', 'user', 'description', 'stars', 'cpf', 'is_active', 'service_types', 'service_types_ids']
+        fields = ['id', 'user', 'user_phone', 'user_address', 'description', 'stars', 'cpf', 'is_active', 'service_types', 'service_types_ids']
 
     def create(self, validated_data):
         service_types = validated_data.pop('service_types_ids', None)
@@ -31,8 +33,7 @@ class ProviderSerializer(serializers.ModelSerializer):
 
 class ProviderApplicationSerializer(serializers.ModelSerializer):
     applicant = serializers.StringRelatedField(read_only=True)
-    service_types = ServiceTypeSerializer(many=True, read_only=True)
-    # allow selecting multiple service types in the browsable API/form
+    service_types = ServiceTypeSerializer(many=True, read_only=True) 
     service_types_ids = serializers.PrimaryKeyRelatedField(queryset=ServiceType.objects.all(), many=True, required=False)
 
     class Meta:

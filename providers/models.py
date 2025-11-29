@@ -23,6 +23,7 @@ class Provider(models.Model):
     is_active = models.BooleanField(default=False)
     service_types = models.ManyToManyField(ServiceType, related_name='providers')
 
+
     def __str__(self):
         return f"Provider: {self.user.username} - Stars: {self.stars}"
 
