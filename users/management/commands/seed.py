@@ -15,8 +15,8 @@ except Exception:
 User = get_user_model()
 
 
-def _make_cpf():
-    # Simple CPF-like generator (not valid checksum), formatted
+def _make_cpf_cnpj():
+    # Simple cpf_cnpj-like generator (not valid checksum), formatted
     return "{:03d}.{:03d}.{:03d}-{:02d}".format(
         random.randint(0, 999), random.randint(0, 999), random.randint(0, 999), random.randint(0, 99)
     )
@@ -151,12 +151,12 @@ class Command(BaseCommand):
         self.stdout.write(f'Creating {providers_count} providers...')
         providers = []
         for idx, user in enumerate(users[:providers_count]):
-            cpf = _make_cpf()
+            cpf_cnpj = _make_cpf_cnpj()
             p, created = Provider.objects.get_or_create(
                 user=user,
                 defaults={
                     'description': '',
-                    'cpf': cpf,
+                    'cpf_cnpj': cpf_cnpj,
                     'is_active': True,
                 }
             )
@@ -171,12 +171,12 @@ class Command(BaseCommand):
 
         self.stdout.write('Creating some provider applications...')
         for user in users[providers_count:]:
-            cpf = _make_cpf()
+            cpf_cnpj = _make_cpf_cnpj()
             chosen = random.sample(list(service_types), k=1)
             app_desc = provider_description_for(chosen[0].name, fake)
             app, created = ProviderApplication.objects.get_or_create(
                 applicant=user,
-                cpf=cpf,
+                cpf_cnpj=cpf_cnpj,
                 defaults={'description': app_desc}
             )
             if created:
