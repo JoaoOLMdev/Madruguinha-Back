@@ -11,6 +11,7 @@ class Provider(models.Model):
         related_name='provider_profile'
         )
     
+    nickname = models.CharField(max_length=100, blank=True, null=True, help_text="Nome da empresa ou apelido público do provider")
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='providers/images/', blank=True, null=True)
     stars = models.DecimalField(
