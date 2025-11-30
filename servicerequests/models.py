@@ -4,6 +4,7 @@ from services.models import ServiceType
 from providers.models import Provider
 from decimal import Decimal
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 
 class ServiceRequest(models.Model):
@@ -37,7 +38,6 @@ class ServiceRequest(models.Model):
         related_name='service_requests'
     )
 
-    # Optional provider assignment (can be null until assigned)
     provider = models.ForeignKey(
         Provider,
         on_delete=models.SET_NULL,
@@ -47,9 +47,25 @@ class ServiceRequest(models.Model):
     )
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    completion_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"ServiceRequest: {self.title} by {self.client.username}"
+
+    def save(self, *args, **kwargs):
+        try:
+            old = ServiceRequest.objects.get(pk=self.pk)
+            old_status = old.status
+        except ServiceRequest.DoesNotExist:
+            old_status = None
+
+        if self.status == self.STATUS_COMPLETED and (old_status != self.STATUS_COMPLETED or not self.completion_date):
+            self.completion_date = timezone.now()
+
+        if self.status != self.STATUS_COMPLETED and old_status == self.STATUS_COMPLETED:
+            self.completion_date = None
+
+        super().save(*args, **kwargs)
 
 
 class Rating(models.Model):
@@ -66,12 +82,10 @@ class Rating(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Recalculate provider average stars
         from django.db.models import Avg
         avg = self.provider.ratings.aggregate(avg_score=Avg('score'))['avg_score']
         if avg is None:
             avg = Decimal('0.00')
-        # store as Decimal with 2 decimal places
         self.provider.stars = avg
         self.provider.save()
 
