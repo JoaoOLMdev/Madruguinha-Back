@@ -21,7 +21,7 @@ class Provider(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],
     )
 
-    cpf = models.CharField(max_length=14, unique=True)
+    cpf_cnpj = models.CharField(max_length=18, unique=True, help_text="CPF ou CNPJ do provider")
     is_active = models.BooleanField(default=False)
     service_types = models.ManyToManyField(ServiceType, related_name='providers')
 
@@ -43,7 +43,7 @@ class ProviderApplication(models.Model):
 
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='provider_applications')
     description = models.TextField(blank=True, null=True)
-    cpf = models.CharField(max_length=14)
+    cpf_cnpj = models.CharField(max_length=18)
     service_types = models.ManyToManyField(ServiceType, related_name='applications', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,7 +51,7 @@ class ProviderApplication(models.Model):
     reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_provider_applications')
 
     class Meta:
-        unique_together = ('applicant', 'cpf')
+        unique_together = ('applicant', 'cpf_cnpj')
 
     def __str__(self):
         return f"ProviderApplication: {self.applicant.username} - {self.status}"
