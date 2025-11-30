@@ -36,6 +36,21 @@ class ProviderViewSet(viewsets.ModelViewSet):
             return Provider.objects.filter(user=user)
         return Provider.objects.all()
 
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def service_requests(self, request, pk=None):
+        """List all service requests assigned to this provider."""
+        from servicerequests.models import ServiceRequest
+        from servicerequests.serializers import ServiceRequestDetailSerializer
+        provider = self.get_object()
+        requests = ServiceRequest.objects.filter(provider=provider)
+        page = self.paginate_queryset(requests)
+        if page is not None:
+            serializer = ServiceRequestDetailSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = ServiceRequestDetailSerializer(requests, many=True, context={'request': request})
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         # Prevent creating a second Provider for the same user (OneToOneField)
         user = getattr(self.request, 'user', None)

@@ -34,6 +34,21 @@ class UserViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             return CustomUser.objects.filter(pk=user.pk)
         return CustomUser.objects.none()
+
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def service_requests(self, request, pk=None):
+        """List all service requests made by this user."""
+        from servicerequests.models import ServiceRequest
+        from servicerequests.serializers import ServiceRequestDetailSerializer
+        user = self.get_object()
+        requests = ServiceRequest.objects.filter(client=user)
+        page = self.paginate_queryset(requests)
+        if page is not None:
+            serializer = ServiceRequestDetailSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = ServiceRequestDetailSerializer(requests, many=True, context={'request': request})
+        return Response(serializer.data)
     
         
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
