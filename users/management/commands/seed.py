@@ -24,24 +24,32 @@ def _make_cpf():
 
 SERVICE_TEMPLATES = {
     'Encanamento': {
-        'provider': 'Encanador com experiência em instalação de torneiras, reparo de vazamentos e desentupimento. Atende residências e pequenos comércios, oferece orçamento no local.',
+        'provider': 'Encanador com experiência em instalação de torneiras, reparo de vazamentos e desentupimento. Atende residências e pequenos comércios, oferece orçamento no local e atendimento emergencial.',
         'request': 'Necessito de serviço de encanamento para {issue} em {address}. Preciso de atendimento {when} e prefiro orçamento de custo estimado de R${price}.'
     },
     'Elétrica': {
-        'provider': 'Eletricista qualificado para instalações, troca de disjuntores, reparos em curto circuito e manutenção elétrica predial. Trabalha com segurança e certificação.',
+        'provider': 'Eletricista qualificado para instalações, troca de disjuntores, reparos em curtos-circuitos e manutenção elétrica predial. Trabalha com padrão de segurança, laudos quando necessário e serviços com garantia.',
         'request': 'Preciso de serviço elétrico para {issue} em {address}. Preferência por atendimento {when}; orçamento aproximado R${price}.'
     },
     'Limpeza': {
-        'provider': 'Serviço de limpeza profissional para residências e escritórios: faxina, passagem de aspirador, limpeza profunda e organização. Fornece materiais se solicitado.',
+        'provider': 'Serviço de limpeza profissional para residências e escritórios: faxina, passagem de aspirador, limpeza profunda e organização. Fornece materiais se solicitado e trabalha por hora ou por projeto.',
         'request': 'Solicito serviço de limpeza para {issue} em {address}. Horário {when}. Estimativa de horas: {hours}h.'
     },
     'Pintura': {
-        'provider': 'Pintor experiente em pintura interna e externa, preparação de superfícies, aplicação de massas e acabamento profissional. Fornece garantia limitada.',
+        'provider': 'Pintor experiente em pintura interna e externa, preparação de superfícies, aplicação de massas e acabamento profissional. Fornece garantia limitada e orçamento por m².',
         'request': 'Necessito pintura para {issue} em {address}. Área aproximada {area}m²; posso agendar para {when}.'
     },
     'Marcenaria': {
-        'provider': 'Marceneiro e serviços de carpintaria: fabricação de móveis sob medida, reparos em portas e armários, montagem e acabamentos.',
+        'provider': 'Marceneiro e carpinteiro para fabricação de móveis sob medida, reparos em portas e armários, montagem e acabamentos. Trabalha com diversos materiais e fornece projeto e orçamento detalhado.',
         'request': 'Preciso de serviços de marcenaria para {issue} em {address}. Material disponível: {material}; prioridade: {when}.'
+    },
+    'Guincho': {
+        'provider': 'Serviço de guincho e reboque 24h para carros leves e motos. Atendimento rápido, transporte seguro até oficina ou local indicado, equipe treinada para manuseio de veículos avariados.',
+        'request': 'Preciso de guincho para transporte de veículo em {address}. Situação: {issue}. Necessidade de atendimento {when} e indicação do destino para orçamento de valor.'
+    },
+    'Chaveiro': {
+        'provider': 'Chaveiro experiente em abertura de portas, troca de fechaduras, cópia de chaves e instalação de fechaduras eletrônicas. Atende emergência com atendimento móvel e garantia no serviço.',
+        'request': 'Necessito de serviço de chaveiro para {issue} em {address}. Preferência por atendimento {when} e possível substituição de peça conforme orçamento.'
     }
 }
 
