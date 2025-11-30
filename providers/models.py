@@ -12,6 +12,7 @@ class Provider(models.Model):
         )
     
     description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='providers/images/', blank=True, null=True)
     stars = models.DecimalField(
         max_digits=3,
         decimal_places=2,
