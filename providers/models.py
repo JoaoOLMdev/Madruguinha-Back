@@ -21,7 +21,7 @@ class Provider(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)],
     )
 
-    cpf_cnpj = models.CharField(max_length=18, unique=True, help_text="CPF ou CNPJ do provider")
+    cpf_cnpj = models.CharField(max_length=18, unique=True, help_text="CPF ou CNPJ do provider", default="")
     is_active = models.BooleanField(default=False)
     service_types = models.ManyToManyField(ServiceType, related_name='providers')
 
@@ -41,9 +41,10 @@ class ProviderApplication(models.Model):
         (STATUS_REJECTED, 'Rejected'),
     ]
 
+    nickname = models.CharField(max_length=100, blank=True, null=True, help_text="Nome da empresa ou apelido público do provider")
     applicant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='provider_applications')
     description = models.TextField(blank=True, null=True)
-    cpf_cnpj = models.CharField(max_length=18)
+    cpf_cnpj = models.CharField(max_length=18, help_text="CPF ou CNPJ do provider", default="")
     service_types = models.ManyToManyField(ServiceType, related_name='applications', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
