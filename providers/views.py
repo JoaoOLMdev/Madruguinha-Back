@@ -65,6 +65,7 @@ class ProviderViewSet(viewsets.ModelViewSet):
             return super().create(request, *args, **kwargs)
 
         serializer = ProviderApplicationSerializer(data=request.data, context={'request': request})
+        
         if serializer.is_valid():
             app = serializer.save(applicant=user)
             return Response(ProviderApplicationSerializer(app, context={'request': request}).data, status=status.HTTP_201_CREATED)
@@ -133,6 +134,11 @@ class ProviderApplicationViewSet(viewsets.ModelViewSet):
         app.reviewer = request.user
         app.reviewed_at = timezone.now()
         app.save()
+
+        # mark the applicant user as provider
+        applicant_user = app.applicant
+        applicant_user.is_provider = True
+        applicant_user.save()
 
         return Response(ProviderSerializer(provider, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
