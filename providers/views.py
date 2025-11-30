@@ -118,7 +118,12 @@ class ProviderApplicationViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Applicant already has a provider profile.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            provider = Provider.objects.create(user=app.applicant, description=app.description, cpf_cnpj=app.cpf_cnpj, is_active=True)
+            provider = Provider.objects.create(
+                user=app.applicant,
+                nickname=app.nickname,
+                description=app.description,
+                cpf_cnpj=app.cpf_cnpj,
+            )
         except IntegrityError:
             return Response({'detail': 'Could not create provider — a provider for this user may already exist.'}, status=status.HTTP_400_BAD_REQUEST)
         if app.service_types.exists():
