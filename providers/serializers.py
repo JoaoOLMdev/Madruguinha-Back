@@ -39,7 +39,7 @@ class ProviderApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = getattr(__import__('providers.models', fromlist=['ProviderApplication']), 'ProviderApplication')
-        fields = ['id', 'applicant', 'description', 'cpf_cnpj', 'service_types', 'service_types_ids', 'status', 'created_at', 'reviewed_at', 'reviewer']
+        fields = ['id', 'applicant', 'nickname', 'description', 'cpf_cnpj', 'service_types', 'service_types_ids', 'status', 'created_at', 'reviewed_at', 'reviewer']
         read_only_fields = ['id', 'applicant', 'status', 'created_at', 'reviewed_at', 'reviewer']
 
     def create(self, validated_data):
