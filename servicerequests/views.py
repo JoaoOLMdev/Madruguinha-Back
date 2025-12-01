@@ -152,3 +152,51 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         sr.refresh_from_db()
         serializer = ServiceRequestDetailSerializer(sr, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def finish(self, request, pk=None):
+        """Allow the assigned provider to mark an IN_PROGRESS request as COMPLETED."""
+        service_request = self.get_object()
+        user = request.user
+
+        provider = getattr(user, 'provider_profile', None)
+        if not provider:
+            return Response({'detail': 'Only providers can finish service requests.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if service_request.provider != provider:
+            return Response({'detail': 'You are not the assigned provider for this request.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if service_request.status != ServiceRequest.STATUS_IN_PROGRESS:
+            return Response({'detail': 'Only in-progress requests can be finished.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            sr = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            sr.status = ServiceRequest.STATUS_COMPLETED
+            sr.save(update_fields=['status', 'completion_date'])
+        sr.refresh_from_db()
+        serializer = ServiceRequestDetailSerializer(sr, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def cancel(self, request, pk=None):
+        """Allow the client or assigned provider to cancel a service request (if not completed)."""
+        service_request = self.get_object()
+        user = request.user
+
+        provider = getattr(user, 'provider_profile', None)
+        is_client = service_request.client == user
+        is_provider = provider and service_request.provider == provider
+
+        if not (is_client or is_provider):
+            return Response({'detail': 'Only the client or assigned provider can cancel this request.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if service_request.status == ServiceRequest.STATUS_COMPLETED:
+            return Response({'detail': 'Completed requests cannot be cancelled.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            sr = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            sr.status = ServiceRequest.STATUS_CANCELLED
+            sr.save(update_fields=['status'])
+        sr.refresh_from_db()
+        serializer = ServiceRequestDetailSerializer(sr, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
