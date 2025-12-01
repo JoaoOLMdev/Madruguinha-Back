@@ -33,7 +33,7 @@ jobs:
           script: |
             cd madruguinha-back
 
-            git pull origin main
+            git pull
 
             source venv/bin/activate
 
