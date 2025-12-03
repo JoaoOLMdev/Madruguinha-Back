@@ -28,10 +28,11 @@ class ServiceRequestDetailSerializer(serializers.ModelSerializer):
     client = serializers.StringRelatedField()
     service_type = serializers.StringRelatedField()
     provider = serializers.StringRelatedField()
+    provider_id = serializers.IntegerField(source='provider.id', read_only=True)
     status = serializers.CharField()
     rating = RatingSerializer(read_only=True)
 
     class Meta:
         model = ServiceRequest
-        fields = ['id', 'title', 'description', 'address', 'requested_date', 'completion_date', 'client', 'service_type', 'provider', 'status', 'rating']
+        fields = ['id', 'title', 'description', 'address', 'requested_date', 'completion_date', 'client', 'service_type', 'provider', 'provider_id', 'status', 'rating']
         read_only_fields = ['requested_date', 'completion_date']
