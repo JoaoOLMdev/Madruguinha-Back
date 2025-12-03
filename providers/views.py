@@ -33,7 +33,12 @@ class ProviderViewSet(viewsets.ModelViewSet):
         if user.is_authenticated and user.is_staff:
             return Provider.objects.all()
         if user.is_authenticated:
-            return Provider.objects.filter(user=user)
+            # Se o usuário for provider, retorna só o próprio provider
+            if hasattr(user, 'provider_profile'):
+                return Provider.objects.filter(user=user)
+            # Se não for provider nem admin, retorna todos (apenas leitura)
+            return Provider.objects.all()
+        # Usuário não autenticado: retorna todos (apenas leitura)
         return Provider.objects.all()
 
 
