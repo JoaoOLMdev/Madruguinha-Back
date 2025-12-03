@@ -218,7 +218,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Seeding complete.'))
 
     def _create_service_types(self):
-        names = ['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria']
+        names = ['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria', 'Guincho', 'Chaveiro']
         objs = []
         for name in names:
             obj, created = ServiceType.objects.get_or_create(name=name)
@@ -230,5 +230,5 @@ class Command(BaseCommand):
         ServiceRequest.objects.all().delete()
         ProviderApplication.objects.all().delete()
         Provider.objects.all().delete()
-        ServiceType.objects.filter(name__in=['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria']).delete()
+        ServiceType.objects.filter(name__in=['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria', 'Guincho', 'Chaveiro']).delete()
         User.objects.filter(email__endswith='@example.com').delete()
