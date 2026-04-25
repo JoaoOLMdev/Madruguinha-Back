@@ -15,8 +15,12 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    if len(sys.argv) > 1 and sys.argv[1] == 'runserver' and not os.environ.get('RUN_MAIN'):
+        print("\n" + "="*55)
+        print("🚀 MAIN API ENDPOINT: http://127.0.0.1:8000/api/")
+        print("="*55 + "\n")
+        
     execute_from_command_line(sys.argv)
-
 
 if __name__ == '__main__':
     main()

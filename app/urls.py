@@ -41,7 +41,10 @@ router.register(r'providers', ProviderViewSet, basename='provider')
 router.register(r'provider-applications', ProviderApplicationViewSet, basename='provider-application')
 router.register(r'service-requests', ServiceRequestViewSet, basename='service-request')
 
+from django.views.generic import RedirectView
+
 urlpatterns = [
+    path('', RedirectView.as_view(url='/api/', permanent=False)),
     path('admin/', admin.site.urls),
     path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
