@@ -34,12 +34,15 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 
+from chat.views import RoomViewSet
+
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'service-types', ServiceTypeViewSet, basename='service-type')
 router.register(r'providers', ProviderViewSet, basename='provider')
 router.register(r'provider-applications', ProviderApplicationViewSet, basename='provider-application')
 router.register(r'service-requests', ServiceRequestViewSet, basename='service-request')
+router.register(r'rooms', RoomViewSet, basename='room')
 
 from django.views.generic import RedirectView
 

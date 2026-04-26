@@ -9,24 +9,21 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 
 import os
 
-from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 
-# Initialize Django ASGI application early to ensure the AppRegistry
-# is populated before importing code that may import ORM models.
+# Initialize Django ASGI application early
 django_asgi_app = get_asgi_application()
 
 import app.routing
+from app.channels_middleware import JWTAuthMiddleware
 
 application = ProtocolTypeRouter({
-    # Django's ASGI application to handle traditional HTTP requests
     "http": django_asgi_app,
     
-    # WebSocket chat handler
-    "websocket": AuthMiddlewareStack(
+    "websocket": JWTAuthMiddleware(
         URLRouter(
             app.routing.websocket_urlpatterns
         )

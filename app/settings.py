@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'providers',
     'services',
     'servicerequests',
+    'chat',
     'corsheaders',
     'channels',
 ]
