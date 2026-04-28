@@ -55,5 +55,6 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include(router.urls)),   
     path('api-auth/', include('rest_framework.urls')),
+    path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('api/current/', CurrentUserView.as_view(), name='current-user'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
