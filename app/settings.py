@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'django_rest_passwordreset',
+    'map',
 ]
 
 MIDDLEWARE = [

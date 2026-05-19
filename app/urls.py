@@ -31,6 +31,7 @@ from providers.views import ProviderViewSet
 from providers.views import ProviderApplicationViewSet
 from servicerequests.views import ServiceRequestViewSet
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from map.views import LocationViewSet
 
 
 
@@ -43,6 +44,7 @@ router.register(r'providers', ProviderViewSet, basename='provider')
 router.register(r'provider-applications', ProviderApplicationViewSet, basename='provider-application')
 router.register(r'service-requests', ServiceRequestViewSet, basename='service-request')
 router.register(r'rooms', RoomViewSet, basename='room')
+router.register(r'locations', LocationViewSet, basename='location')
 
 from django.views.generic import RedirectView
 
