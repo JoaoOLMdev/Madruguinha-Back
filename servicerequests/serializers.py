@@ -20,7 +20,7 @@ class ServiceRequestCreateUpdateSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = ServiceRequest
-        fields = ['id', 'title', 'description', 'address', 'service_type', 'provider']
+        fields = ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'service_type', 'provider']
         read_only_fields = ['id']
         
 
@@ -34,5 +34,5 @@ class ServiceRequestDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ServiceRequest
-        fields = ['id', 'title', 'description', 'address', 'requested_date', 'completion_date', 'client', 'service_type', 'provider', 'provider_id', 'status', 'rating']
+        fields = ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'requested_date', 'completion_date', 'client', 'service_type', 'provider', 'provider_id', 'status', 'rating']
         read_only_fields = ['requested_date', 'completion_date']
