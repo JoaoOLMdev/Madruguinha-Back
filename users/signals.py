@@ -1,3 +1,4 @@
+import os
 from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -11,12 +12,14 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
     When a token is created, an e-mail needs to be sent to the user
     """
     # Send an e-mail to the user
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    
     context = {
         'current_user': reset_password_token.user,
         'username': reset_password_token.user.username,
         'email': reset_password_token.user.email,
-        # ToDo: The URL should point to your frontend's password reset page
-        'reset_password_url': f"http://localhost:3000/reset-password?token={reset_password_token.key}"
+        # URL dynamically points to frontend password reset page
+        'reset_password_url': f"{frontend_url}/reset-password?token={reset_password_token.key}"
     }
 
     # render email text
