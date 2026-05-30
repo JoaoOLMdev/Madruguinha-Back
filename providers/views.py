@@ -7,6 +7,7 @@ from app.permissions import IsOwnerOrReadOnly, IsOwnerOnly
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
+from .utils import is_valid_cpf_cnpj
 
 class ProviderViewSet(viewsets.ModelViewSet):
     queryset = Provider.objects.all()
@@ -64,16 +65,21 @@ class ProviderViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
 
     def create(self, request, *args, **kwargs):
-        """If the requester is staff, create Provider as before. Otherwise create a ProviderApplication for admin approval."""
+        """Validates CPF/CNPJ and auto-approves if valid, or creates for staff."""
         user = request.user
         if user.is_authenticated and user.is_staff:
             return super().create(request, *args, **kwargs)
+
+        cpf_cnpj = request.data.get('cpf_cnpj', '')
+        if not is_valid_cpf_cnpj(cpf_cnpj):
+            return Response({'detail': 'CPF ou CNPJ inválido.'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ProviderApplicationSerializer(data=request.data, context={'request': request})
         
         if serializer.is_valid():
             app = serializer.save(applicant=user)
             return Response(ProviderApplicationSerializer(app, context={'request': request}).data, status=status.HTTP_201_CREATED)
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsOwnerOnly])
