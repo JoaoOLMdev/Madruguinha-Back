@@ -18,6 +18,9 @@ class ServiceRequestCreateUpdateSerializer(serializers.ModelSerializer):
     provider = serializers.PrimaryKeyRelatedField(
         queryset=Provider.objects.all(), required=False, allow_null=True
     )
+    latitude = serializers.FloatField(required=False, allow_null=True)
+    longitude = serializers.FloatField(required=False, allow_null=True)
+
     class Meta:
         model = ServiceRequest
         fields = ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'service_type', 'provider']
@@ -31,6 +34,8 @@ class ServiceRequestDetailSerializer(serializers.ModelSerializer):
     provider_id = serializers.IntegerField(source='provider.id', read_only=True)
     status = serializers.CharField()
     rating = RatingSerializer(read_only=True)
+    latitude = serializers.FloatField(read_only=True)
+    longitude = serializers.FloatField(read_only=True)
 
     class Meta:
         model = ServiceRequest
