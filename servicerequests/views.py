@@ -178,6 +178,26 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def confirm_payment(self, request, pk=None):
+        """Allow the client to confirm payment and mark an IN_PROGRESS request as COMPLETED."""
+        service_request = self.get_object()
+        user = request.user
+
+        if service_request.client != user:
+            return Response({'detail': 'Only the client can confirm payment.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if service_request.status != ServiceRequest.STATUS_IN_PROGRESS:
+            return Response({'detail': 'Only in-progress requests can be paid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            sr = ServiceRequest.objects.select_for_update().get(pk=service_request.pk)
+            sr.status = ServiceRequest.STATUS_COMPLETED
+            sr.save(update_fields=['status', 'completion_date'])
+        sr.refresh_from_db()
+        serializer = ServiceRequestDetailSerializer(sr, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def cancel(self, request, pk=None):
         """Allow the client or assigned provider to cancel a service request (if not completed)."""
         service_request = self.get_object()
