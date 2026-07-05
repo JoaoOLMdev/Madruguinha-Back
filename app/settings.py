@@ -189,7 +189,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 # WhiteNoise — serve static files efficiently in production (Render)
 STORAGES = {
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
