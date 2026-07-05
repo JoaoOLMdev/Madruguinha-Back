@@ -21,7 +21,15 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         return ServiceRequestDetailSerializer
     
     def perform_create(self, serializer):
-        serializer.save(client=self.request.user)
+        user = self.request.user
+        has_active = ServiceRequest.objects.filter(
+            client=user,
+            status__in=[ServiceRequest.STATUS_PENDING, ServiceRequest.STATUS_IN_PROGRESS]
+        ).exists()
+        if has_active:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Você já possui uma solicitação de serviço ativa ou pendente.")
+        serializer.save(client=user)
 
     def get_queryset(self):
         user = self.request.user
