@@ -62,6 +62,8 @@ class CustomTokenObtainPairSerializer(EmailTokenObtainPairSerializer):
         data['first_name'] = user.first_name
         data['last_name'] = user.last_name
         data['phone_number'] = user_data.get('phone_number', '')
+        data['is_staff'] = bool(user.is_staff)
+        data['is_superuser'] = bool(user.is_superuser)
 
         return data
 

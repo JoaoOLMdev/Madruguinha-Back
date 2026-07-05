@@ -39,13 +39,15 @@ class ProviderSerializer(serializers.ModelSerializer):
 
 class ProviderApplicationSerializer(serializers.ModelSerializer):
     applicant = serializers.StringRelatedField(read_only=True)
+    applicant_name = serializers.CharField(source='applicant.get_full_name', read_only=True)
+    applicant_email = serializers.EmailField(source='applicant.email', read_only=True)
     service_types = ServiceTypeSerializer(many=True, read_only=True) 
     service_types_ids = serializers.PrimaryKeyRelatedField(queryset=ServiceType.objects.all(), many=True, required=False)
 
     class Meta:
         model = getattr(__import__('providers.models', fromlist=['ProviderApplication']), 'ProviderApplication')
-        fields = ['id', 'applicant', 'nickname', 'description', 'cpf_cnpj', 'service_types', 'service_types_ids', 'status', 'created_at', 'reviewed_at', 'reviewer']
-        read_only_fields = ['id', 'applicant', 'status', 'created_at', 'reviewed_at', 'reviewer']
+        fields = ['id', 'applicant', 'applicant_name', 'applicant_email', 'nickname', 'description', 'cpf_cnpj', 'service_types', 'service_types_ids', 'status', 'created_at', 'reviewed_at', 'reviewer']
+        read_only_fields = ['id', 'applicant', 'applicant_name', 'applicant_email', 'status', 'created_at', 'reviewed_at', 'reviewer']
 
     def create(self, validated_data):
         service_types = validated_data.pop('service_types_ids', None)
