@@ -55,7 +55,25 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
             })
             return
 
-        room = await self.get_room(pk=self.room_subscribe)
+        room_id = getattr(self, "room_subscribe", None)
+        if not room_id:
+            await self.send_json({
+                "error": "You must join a room before sending messages.",
+                "action": "create_message",
+                "request_id": kwargs.get("request_id")
+            })
+            return
+
+        try:
+            room = await self.get_room(pk=room_id)
+        except Room.DoesNotExist:
+            await self.send_json({
+                "error": "Room does not exist.",
+                "action": "create_message",
+                "request_id": kwargs.get("request_id")
+            })
+            return
+
         await database_sync_to_async(Message.objects.create)(
             room=room,
             user=user,
@@ -88,12 +106,18 @@ class RoomConsumer(ObserverModelInstanceMixin, GenericAsyncAPIConsumer):
 
     @database_sync_to_async
     def add_user_to_room(self, pk: int):
-        room = Room.objects.get(pk=pk)
-        if self.scope["user"].is_authenticated:
-            room.current_users.add(self.scope["user"])
+        try:
+            room = Room.objects.get(pk=pk)
+            if self.scope["user"].is_authenticated:
+                room.current_users.add(self.scope["user"])
+        except Room.DoesNotExist:
+            pass
 
     @database_sync_to_async
     def remove_user_from_room(self, pk: int):
-        room = Room.objects.get(pk=pk)
-        if self.scope["user"].is_authenticated:
-            room.current_users.remove(self.scope["user"])
+        try:
+            room = Room.objects.get(pk=pk)
+            if self.scope["user"].is_authenticated:
+                room.current_users.remove(self.scope["user"])
+        except Room.DoesNotExist:
+            pass
