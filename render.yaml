@@ -10,9 +10,7 @@ services:
     startCommand: "daphne -b 0.0.0.0 -p $PORT app.asgi:application"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: madruguinha-db
-          property: connectionString
+        sync: false                  # Neon connection string — set manually in Render dashboard
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
@@ -28,8 +26,3 @@ services:
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
 
-databases:
-  - name: madruguinha-db
-    plan: free                       # change for production
-    databaseName: madruguinha
-    user: madruguinha
