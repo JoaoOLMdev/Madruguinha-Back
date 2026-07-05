@@ -189,14 +189,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # WhiteNoise — serve static files efficiently in production (Render)
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
-
 # Cloudinary — media file storage (user/provider images)
-# Only activate when credentials are set (production); fall back to local disk in dev.
+# In Django 4.2+, STORAGES takes precedence over DEFAULT_FILE_STORAGE,
+# so we must inject the "default" backend directly into this dict.
 CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
 if CLOUDINARY_CLOUD_NAME:
     CLOUDINARY_STORAGE = {
@@ -204,7 +199,18 @@ if CLOUDINARY_CLOUD_NAME:
         'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
         'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
     }
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    _media_backend = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
+    _media_backend = 'django.core.files.storage.FileSystemStorage'
+
+STORAGES = {
+    "default": {
+        "BACKEND": _media_backend,
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
