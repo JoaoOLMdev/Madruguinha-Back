@@ -80,8 +80,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--clear', action='store_true', help='Clear seeded data before creating')
-        parser.add_argument('--users', type=int, default=10, help='Number of users to create (default: 10)')
-        parser.add_argument('--providers', type=int, default=3, help='Number of providers to create (default: 3)')
+        parser.add_argument('--users', type=int, default=25, help='Number of users to create (default: 10)')
+        parser.add_argument('--providers', type=int, default=10, help='Number of providers to create (default: 3)')
         parser.add_argument('--locale', type=str, default='pt_BR', help='Faker locale to use (default: pt_BR)')
 
     def handle(self, *args, **options):
@@ -112,6 +112,100 @@ class Command(BaseCommand):
             admin.is_staff = True
             admin.is_superuser = True
             admin.save()
+
+        # ── Conta padrão de USUÁRIO COMUM para testes ──
+        self.stdout.write('Creating test user account (usuario@teste.com)...')
+        test_user, created = User.objects.get_or_create(
+            email='usuario@teste.com',
+            defaults={
+                'username': 'usuario@teste.com',
+                'first_name': 'Usuário',
+                'last_name': 'Teste',
+                'phone_number': '11999999999',
+                'address': 'Rua de Teste, 123 - São Paulo, SP',
+                'birth_date': '2000-01-01',
+            }
+        )
+        if created:
+            test_user.set_password('teste123')
+            test_user.save()
+            self.stdout.write(self.style.SUCCESS('  ✔ usuario@teste.com / teste123'))
+        else:
+            self.stdout.write('  (already exists)')
+
+        # ── Conta padrão de PRESTADOR para testes (com 15 avaliações) ──
+        self.stdout.write('Creating test provider account (prestador@teste.com)...')
+        test_provider_user, created = User.objects.get_or_create(
+            email='prestador@teste.com',
+            defaults={
+                'username': 'prestador@teste.com',
+                'first_name': 'Prestador',
+                'last_name': 'Teste',
+                'phone_number': '11988888888',
+                'address': 'Av. de Teste, 456 - São Paulo, SP',
+                'birth_date': '1995-06-15',
+            }
+        )
+        if created:
+            test_provider_user.set_password('teste123')
+            test_provider_user.save()
+            self.stdout.write(self.style.SUCCESS('  ✔ prestador@teste.com / teste123'))
+        else:
+            self.stdout.write('  (already exists)')
+
+        test_provider, _ = Provider.objects.get_or_create(
+            user=test_provider_user,
+            defaults={
+                'nickname': 'Prestador Teste',
+                'description': 'Conta de prestador criada para testes da plataforma.',
+                'cpf_cnpj': '000.000.000-00',
+                'is_active': True,
+            }
+        )
+        if service_types:
+            test_provider.service_types.set(service_types[:2])
+
+        # Criar 15 avaliações para o prestador de teste
+        existing_ratings_count = test_provider.ratings.count()
+        ratings_to_create = 15 - existing_ratings_count
+        if ratings_to_create > 0:
+            self.stdout.write(f'  Creating {ratings_to_create} ratings for test provider...')
+            for r_idx in range(ratings_to_create):
+                # Criar um usuário reviewer para cada avaliação
+                reviewer_email = f'reviewer.teste.{r_idx}@example.com'
+                reviewer, _ = User.objects.get_or_create(
+                    email=reviewer_email,
+                    defaults={
+                        'username': reviewer_email,
+                        'first_name': f'Reviewer{r_idx}',
+                        'last_name': 'Teste',
+                    }
+                )
+                if _:
+                    reviewer.set_password('password')
+                    reviewer.save()
+
+                svc_type = random.choice(service_types) if service_types else None
+                sr = ServiceRequest.objects.create(
+                    title=f'Serviço de teste #{r_idx + 1}',
+                    description=f'Solicitação de teste para avaliação do prestador.',
+                    address='Rua de Teste, 123 - São Paulo, SP',
+                    client=reviewer,
+                    service_type=svc_type,
+                    provider=test_provider,
+                    status=ServiceRequest.STATUS_COMPLETED,
+                )
+                score = round(random.uniform(3.5, 5.0), 2)
+                Rating.objects.create(
+                    service_request=sr,
+                    provider=test_provider,
+                    reviewer=reviewer,
+                    score=score,
+                    comment=f'Avaliação de teste #{r_idx + 1} - Ótimo serviço!',
+                )
+            self.stdout.write(self.style.SUCCESS(f'  ✔ Test provider now has {test_provider.ratings.count()} ratings (stars: {test_provider.stars})'))
+        else:
+            self.stdout.write(f'  (already has {existing_ratings_count} ratings)')
 
         self.stdout.write(f'Creating {users_count} regular users...')
         users = []
@@ -215,7 +309,54 @@ class Command(BaseCommand):
                     comment=fake.sentence(nb_words=12)
                 )
 
+        # ── Garantir que ao menos 3 prestadores comuns tenham ≥ 15 avaliações ──
+        self.stdout.write('Ensuring at least 3 regular providers have 15+ ratings...')
+        featured_providers = providers[:3]
+        for fp_idx, featured_provider in enumerate(featured_providers):
+            existing = featured_provider.ratings.count()
+            needed = 15 - existing
+            if needed > 0:
+                self.stdout.write(f'  Provider #{fp_idx + 1} ({featured_provider.user.email}): creating {needed} ratings...')
+                for r_idx in range(needed):
+                    reviewer_email = f'reviewer.provider{fp_idx}.{r_idx}@example.com'
+                    reviewer, rev_created = User.objects.get_or_create(
+                        email=reviewer_email,
+                        defaults={
+                            'username': reviewer_email,
+                            'first_name': f'Reviewer{r_idx}',
+                            'last_name': f'P{fp_idx}',
+                        }
+                    )
+                    if rev_created:
+                        reviewer.set_password('password')
+                        reviewer.save()
+
+                    svc_type = random.choice(service_types) if service_types else None
+                    sr = ServiceRequest.objects.create(
+                        title=fake.sentence(nb_words=5),
+                        description=request_description_for(svc_type.name if svc_type else 'Limpeza', fake, fake.address().replace('\n', ', ')),
+                        address=fake.address().replace('\n', ', '),
+                        client=reviewer,
+                        service_type=svc_type,
+                        provider=featured_provider,
+                        status=ServiceRequest.STATUS_COMPLETED,
+                    )
+                    score = round(random.uniform(3.0, 5.0), 2)
+                    Rating.objects.create(
+                        service_request=sr,
+                        provider=featured_provider,
+                        reviewer=reviewer,
+                        score=score,
+                        comment=fake.sentence(nb_words=10),
+                    )
+                self.stdout.write(self.style.SUCCESS(
+                    f'  ✔ Provider #{fp_idx + 1} now has {featured_provider.ratings.count()} ratings (stars: {featured_provider.stars})'
+                ))
+            else:
+                self.stdout.write(f'  Provider #{fp_idx + 1} already has {existing} ratings.')
+
         self.stdout.write(self.style.SUCCESS('Seeding complete.'))
+
 
     def _create_service_types(self):
         names = ['Encanamento', 'Elétrica', 'Limpeza', 'Pintura', 'Marcenaria', 'Guincho', 'Chaveiro']
