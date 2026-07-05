@@ -1,0 +1,35 @@
+# render.yaml — Render Blueprint (Infrastructure as Code)
+# https://docs.render.com/blueprint-spec
+
+services:
+  - type: web
+    name: madruguinha-back
+    runtime: python
+    plan: free                       # change to "starter" or higher for production
+    buildCommand: "./build.sh"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT app.asgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: madruguinha-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.12.10"
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        sync: false                  # set manually in Render dashboard
+      - key: REDIS_URL
+        sync: false                  # set manually — external Redis provider
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+
+databases:
+  - name: madruguinha-db
+    plan: free                       # change for production
+    databaseName: madruguinha
+    user: madruguinha
