@@ -11,7 +11,12 @@ class ProviderSerializer(serializers.ModelSerializer):
     provider_image = serializers.ImageField(source='image', required=False, allow_null=True)
     service_types = ServiceTypeSerializer(many=True, read_only=True)
     service_types_ids = serializers.PrimaryKeyRelatedField(queryset=ServiceType.objects.all(), many=True, required=False)
-    stars = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
+    stars = serializers.SerializerMethodField()
+
+    def get_stars(self, obj):
+        if obj.ratings.count() >= 15:
+            return obj.stars
+        return None
 
     class Meta:
         model = Provider

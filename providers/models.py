@@ -27,7 +27,9 @@ class Provider(models.Model):
 
 
     def __str__(self):
-        return f"Provider: {self.user.username} - Stars: {self.stars}"
+        if self.ratings.count() >= 15:
+            return f"Prestador: {self.user.username} - {self.stars} Estrelas"
+        return f"Prestador: {self.user.username} - Novo Prestador!!!"
 
 
 class ProviderApplication(models.Model):
